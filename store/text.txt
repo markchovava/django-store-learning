@@ -1,0 +1,8 @@
+{
+  "title":"a",
+ "description":"Earn tokens by viewing Brave Private Ads and support content creators automatically.",
+ "unit_price": 2.1,
+  "slug":"aa",
+  "collection":2,
+  "inventory": 10
+}
