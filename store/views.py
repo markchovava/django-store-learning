@@ -9,7 +9,7 @@ from rest_framework.viewsets import ModelViewSet, GenericViewSet
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework import status
-from .models import Product, Collection, Cart
+from .models import Product, Collection, Cart, OrderItem
 from .serializers import ProductSerializer, CollectionSerializer, CartSerializer
 
 
@@ -20,13 +20,11 @@ class ProductViewSet(ModelViewSet):
     def get_serializer_context(self):
         return {'request': self.request}
 
-    def delete(self, request, pk):
-        product = get_object_or_404(Product, pk=pk)
-        if product.orderitems.count() > 0:
-            return Response(
-                {'error': 'Product cannot be deleted because it is associated with an order item.'},
-                status=status.HTTP_405_METHOD_NOT_ALLOWED)
-        product.delete()
+    def destroy(self, request, *args, **kwargs):
+        if OrderItem.objects.filter(product_id=kwargs['pk']).count() > 0:
+            return Response({'error': 'Product cannot be deleted because it is associated with an order item.'}, 
+                    status=status.HTTP_405_METHOD_NOT_ALLOWED)
+        super().destroy(request, *args, **kwargs)
         return Response(status=status.HTTP_204_NO_CONTENT)
 
 
@@ -38,12 +36,21 @@ class CollectionViewSet(ModelViewSet):
     def get_serializer_context(self):
         return {'request': self.request}
 
-    def delete(self, request, pk):
+    def destroy(self, request, *args, **kwargs):
         collection = get_object_or_404(Collection, pk=pk)
         if collection.products.count() > 0:
-            return Response({'error': 'Collection cannot be deleted'}, status=status.HTTP_204_NO_CONTENT)
+           return Response({'error': 'Collection cannot be deleted'}, status=status.HTTP_204_NO_CONTENT)
         collection.delete()
+        super().destroy(request, *args, **kwargs)
         return Response(status=status.HTTP_204_NO_CONTENT)
+
+
+    # def delete(self, request, pk):
+    #    collection = get_object_or_404(Collection, pk=pk)
+    #    if collection.products.count() > 0:
+    #        return Response({'error': 'Collection cannot be deleted'}, status=status.HTTP_204_NO_CONTENT)
+    #    collection.delete()
+    #    return Response(status=status.HTTP_204_NO_CONTENT)
 
 
 ##### WHEN USING ListCreateAPIView
